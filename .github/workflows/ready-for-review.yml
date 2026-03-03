@@ -17,8 +17,6 @@ jobs:
       issues: write          # needed to create issue comments (PRs use issues API)
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Post Buddy webhook buttons
         uses: rapid-recovery-agency-inc/ready-for-review-action@main
         with:
