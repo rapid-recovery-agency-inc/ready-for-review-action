@@ -9,7 +9,8 @@ author: 'Rapid Recovery Agency Inc.'
 inputs:
   buddy-webhook-base-urls:
     description: >
-      Comma-separated list of Buddy webhook base URLs.
+      Newline-separated list of Buddy pipeline entries.
+      Each line must be in the format: Label,https://url
       Map this to the BUDDY_WEBHOOK_BASE_URLS repository secret.
     required: false
     default: ''

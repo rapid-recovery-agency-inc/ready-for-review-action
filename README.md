@@ -9,9 +9,9 @@ The comment is posted **at most once per PR per calendar day (UTC)**, preventing
 ## How it works
 
 1. The workflow is triggered by the `pull_request: ready_for_review` event.
-2. The action reads the `BUDDY_WEBHOOK_BASE_URLS` secret (a comma-separated list of Buddy webhook base URLs).
+2. The action reads the `BUDDY_WEBHOOK_BASE_URLS` secret (a newline-separated list of `Label,URL` pairs).
 3. It checks whether a Buddy pipeline comment has already been posted today.
-4. If not, it creates a PR comment containing a clickable badge button for each URL.
+4. If not, it creates a PR comment containing a clickable badge button for each pipeline entry.
 
 ---
 
@@ -23,12 +23,13 @@ In your repository → **Settings → Secrets and variables → Actions → New 
 
 | Name | Value |
 |------|-------|
-| `BUDDY_WEBHOOK_BASE_URLS` | `https://buddy.works/api/webhooks/abc123` |
+| `BUDDY_WEBHOOK_BASE_URLS` | `Deploy to Staging,https://buddy.works/api/webhooks/abc123` |
 
-For multiple pipelines, separate the URLs with commas:
+For multiple pipelines, put each entry on its own line:
 
 ```
-https://buddy.works/api/webhooks/abc123, https://buddy.works/api/webhooks/def456
+Deploy to Staging,https://buddy.works/api/webhooks/abc123
+Tests,https://buddy.works/api/webhooks/def456
 ```
 
 ### 2 – Add the workflow to your repository
@@ -68,7 +69,7 @@ jobs:
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `buddy-webhook-base-urls` | No | `''` | Comma-separated list of Buddy webhook base URLs. Map to the `BUDDY_WEBHOOK_BASE_URLS` secret. |
+| `buddy-webhook-base-urls` | No | `''` | Newline-separated list of `Label,URL` pairs (one per line). Map to the `BUDDY_WEBHOOK_BASE_URLS` secret. |
 | `github-token` | Yes | `${{ github.token }}` | GitHub token used to read and write PR comments. |
 
 ---
@@ -79,8 +80,9 @@ When the action runs, it creates a comment like:
 
 > ## 🚀 Buddy Pipelines
 >
-> <a href="https://buddy.works/api/webhooks/abc123"><kbd>Run abc123</kbd></a>
-> <a href="https://buddy.works/api/webhooks/def456"><kbd>Run def456</kbd></a>
+> <a href="https://buddy.works/api/webhooks/abc123" target="_blank" rel="noopener noreferrer"><kbd>Run Deploy to Staging</kbd></a>
+>
+> <a href="https://buddy.works/api/webhooks/def456" target="_blank" rel="noopener noreferrer"><kbd>Run Tests</kbd></a>
 
 ---
 
