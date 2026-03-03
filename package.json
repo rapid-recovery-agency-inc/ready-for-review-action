@@ -1,0 +1,19 @@
+{
+  "name": "ready-for-review-action",
+  "version": "1.0.0",
+  "description": "GitHub Action that posts Buddy CI pipeline buttons when a PR moves from draft to ready for review",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vercel/ncc": "^0.38.4",
+    "typescript": "^5.9.3"
+  }
+}

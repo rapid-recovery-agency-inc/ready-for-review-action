@@ -1,0 +1,26 @@
+name: Ready for Review – Notify Buddy
+
+# Triggers when a pull request transitions from Draft → Ready for Review.
+on:
+  pull_request:
+    types: [ready_for_review]
+
+jobs:
+  notify-buddy:
+    name: Post Buddy pipeline buttons
+    runs-on: ubuntu-latest
+    # Only run when the PR actually becomes ready (not draft)
+    if: ${{ !github.event.pull_request.draft }}
+
+    permissions:
+      pull-requests: write   # needed to post a PR comment
+      issues: write          # needed to create issue comments (PRs use issues API)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Post Buddy webhook buttons
+        uses: rapid-recovery-agency-inc/ready-for-review-action@main
+        with:
+          buddy-webhook-base-urls: ${{ secrets.BUDDY_WEBHOOK_BASE_URLS }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

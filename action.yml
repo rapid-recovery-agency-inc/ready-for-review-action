@@ -1,0 +1,29 @@
+name: 'Ready for Review – Buddy Pipelines'
+description: >
+  Posts Buddy CI pipeline webhook links as clickable buttons in a PR comment
+  when a pull request transitions from Draft to Ready for Review.
+  Runs at most once per PR per calendar day (UTC).
+
+author: 'Rapid Recovery Agency Inc.'
+
+inputs:
+  buddy-webhook-base-urls:
+    description: >
+      Comma-separated list of Buddy webhook base URLs.
+      Map this to the BUDDY_WEBHOOK_BASE_URLS repository secret.
+    required: false
+    default: ''
+  github-token:
+    description: >
+      GitHub token used to read and write PR comments.
+      Defaults to the built-in GITHUB_TOKEN secret.
+    required: true
+    default: ${{ github.token }}
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'zap'
+  color: 'blue'
