@@ -32708,10 +32708,12 @@ async function run() {
         const { owner, repo } = github.context.repo;
         const pullNumber = github.context.payload.pull_request?.number;
         if (!pullNumber) {
-            core.setFailed('This action must run in a pull_request event context.');
+            core.info('Not running in a pull_request event context – skipping.');
             return;
         }
         const today = getTodayString();
+        // Substitute ${PR} placeholder in each URL with the actual PR number.
+        const resolvedUrls = urls.map(url => url.replace(/\$\{PR\}/g, String(pullNumber)));
         // Paginate through all comments to find a same-day comment from this action.
         let alreadyPostedToday = false;
         for await (const response of octokit.paginate.iterator(octokit.rest.issues.listComments, { owner, repo, issue_number: pullNumber, per_page: 100 })) {
@@ -32728,7 +32730,7 @@ async function run() {
             core.info('Buddy pipeline comment already posted today – skipping.');
             return;
         }
-        const body = buildComment(urls, today);
+        const body = buildComment(resolvedUrls, today);
         await octokit.rest.issues.createComment({
             owner,
             repo,
