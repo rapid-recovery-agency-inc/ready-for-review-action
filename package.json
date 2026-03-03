@@ -1,0 +1,38 @@
+{
+  "name": "ready-for-review-action",
+  "version": "1.0.0",
+  "description": "GitHub Action that posts Buddy CI pipeline buttons when a PR moves from draft to ready for review",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "test": "jest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.0.0",
+    "@vercel/ncc": "^0.38.4",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "moduleNameMapper": {
+      "^@actions/core$": "<rootDir>/__mocks__/@actions/core.js",
+      "^@actions/github$": "<rootDir>/__mocks__/@actions/github.js"
+    },
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/index.ts"
+    ]
+  }
+}
