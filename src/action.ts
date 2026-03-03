@@ -7,6 +7,12 @@ export const COMMENT_MARKER = '<!-- ready-for-review-action -->';
 /** Regex to extract the ISO date from the hidden date comment. */
 const DATE_PATTERN = /<!-- date: (\d{4}-\d{2}-\d{2}) -->/;
 
+/** A parsed pipeline entry with an explicit label and a validated URL. */
+export interface Pipeline {
+  label: string;
+  url: string;
+}
+
 /**
  * Returns today's date as an ISO-8601 date string (YYYY-MM-DD) in UTC.
  * Exported so tests can verify date formatting.
@@ -16,16 +22,28 @@ export function getTodayString(): string {
 }
 
 /**
- * Parses a comma-separated string of URLs and returns the valid ones.
+ * Parses a newline-separated list of `Label,URL` pairs.
  *
- * @param rawUrls - Raw input value from the `buddy-webhook-base-urls` input.
- * @returns Array of trimmed, valid URL strings.
+ * Each non-empty line must contain a label and an http(s) URL separated by
+ * the first comma. Lines that are missing a comma, have a blank label, or
+ * contain an invalid URL are silently skipped.
+ *
+ * @param raw - Raw input value from the `buddy-webhook-base-urls` input.
+ * @returns Array of validated Pipeline entries.
  */
-export function parseUrls(rawUrls: string): string[] {
-  return rawUrls
-    .split(',')
-    .map(u => u.trim())
-    .filter(u => u.length > 0 && isValidUrl(u));
+export function parsePipelines(raw: string): Pipeline[] {
+  return raw
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .flatMap(line => {
+      const commaIndex = line.indexOf(',');
+      if (commaIndex === -1) return [];
+      const label = line.slice(0, commaIndex).trim();
+      const url = line.slice(commaIndex + 1).trim();
+      if (!label || !isValidUrl(url)) return [];
+      return [{ label, url }];
+    });
 }
 
 /**
@@ -41,20 +59,6 @@ function isValidUrl(url: string): boolean {
 }
 
 /**
- * Derives a human-readable label from a URL.
- * Uses the last non-empty path segment, falling back to the hostname.
- */
-export function getLabelFromUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    const segments = parsed.pathname.split('/').filter(s => s.length > 0);
-    return segments[segments.length - 1] ?? parsed.hostname;
-  } catch {
-    return url;
-  }
-}
-
-/**
  * Escapes HTML special characters in a string to prevent HTML injection.
  */
 function escapeHtml(str: string): string {
@@ -66,21 +70,21 @@ function escapeHtml(str: string): string {
 }
 
 /**
- * Builds the PR comment body containing <kbd> tag buttons for each URL.
+ * Builds the PR comment body containing <kbd> tag buttons for each pipeline.
  *
+ * Each button opens in a new tab. Buttons are separated by a blank line.
  * An HTML comment with today's date is embedded so future runs can detect
  * that a comment was already posted today and skip posting another one.
  *
- * @param urls   - Validated Buddy webhook base URLs.
- * @param today  - ISO date string (YYYY-MM-DD), defaults to today.
+ * @param pipelines - Validated pipeline entries (label + URL).
+ * @param today     - ISO date string (YYYY-MM-DD), defaults to today.
  */
-export function buildComment(urls: string[], today = getTodayString()): string {
-  const buttons = urls
-    .map(url => {
-      const label = getLabelFromUrl(url);
-      return `<a href="${escapeHtml(url)}"><kbd>Run ${escapeHtml(label)}</kbd></a>`;
-    })
-    .join('\n');
+export function buildComment(pipelines: Pipeline[], today = getTodayString()): string {
+  const buttons = pipelines
+    .map(({ label, url }) =>
+      `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><kbd>Run ${escapeHtml(label)}</kbd></a>`
+    )
+    .join('\n\n');
 
   return [
     COMMENT_MARKER,
@@ -116,12 +120,12 @@ export async function run(): Promise<void> {
       return;
     }
 
-    const urls = parseUrls(rawUrls);
-    if (urls.length === 0) {
+    const pipelines = parsePipelines(rawUrls);
+    if (pipelines.length === 0) {
       core.warning(
-        'No valid URLs were found in buddy-webhook-base-urls. ' +
+        'No valid pipeline entries were found in buddy-webhook-base-urls. ' +
           'Ensure the BUDDY_WEBHOOK_BASE_URLS secret contains at least one ' +
-          'comma-separated http(s) URL.'
+          'newline-separated entry in the format: Label,https://url'
       );
       return;
     }
@@ -138,7 +142,10 @@ export async function run(): Promise<void> {
     const today = getTodayString();
 
     // Substitute ${PR} placeholder in each URL with the actual PR number.
-    const resolvedUrls = urls.map(url => url.replace(/\$\{PR\}/g, String(pullNumber)));
+    const resolvedPipelines = pipelines.map(({ label, url }) => ({
+      label,
+      url: url.replace(/\$\{PR\}/g, String(pullNumber)),
+    }));
 
     // Paginate through all comments to find a same-day comment from this action.
     let alreadyPostedToday = false;
@@ -160,7 +167,7 @@ export async function run(): Promise<void> {
       return;
     }
 
-    const body = buildComment(resolvedUrls, today);
+    const body = buildComment(resolvedPipelines, today);
     await octokit.rest.issues.createComment({
       owner,
       repo,
