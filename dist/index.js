@@ -32650,7 +32650,17 @@ function getLabelFromUrl(url) {
     }
 }
 /**
- * Builds the PR comment body containing shield.io badge buttons for each URL.
+ * Escapes HTML special characters in a string to prevent HTML injection.
+ */
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+/**
+ * Builds the PR comment body containing <kbd> tag buttons for each URL.
  *
  * An HTML comment with today's date is embedded so future runs can detect
  * that a comment was already posted today and skip posting another one.
@@ -32662,8 +32672,7 @@ function buildComment(urls, today = getTodayString()) {
     const buttons = urls
         .map(url => {
         const label = getLabelFromUrl(url);
-        const badgeLabel = encodeURIComponent(label.replace(/-/g, '--').replace(/ /g, '_'));
-        return `[![${label}](https://img.shields.io/badge/Run-${badgeLabel}-blue?style=for-the-badge)](${url})`;
+        return `<a href="${escapeHtml(url)}"><kbd>Run ${escapeHtml(label)}</kbd></a>`;
     })
         .join('\n');
     return [
