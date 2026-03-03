@@ -79,8 +79,8 @@ When the action runs, it creates a comment like:
 
 > ## 🚀 Buddy Pipelines
 >
-> [![abc123](https://img.shields.io/badge/Run-abc123-blue?style=for-the-badge)](https://buddy.works/api/webhooks/abc123)
-> [![def456](https://img.shields.io/badge/Run-def456-blue?style=for-the-badge)](https://buddy.works/api/webhooks/def456)
+> <a href="https://buddy.works/api/webhooks/abc123"><kbd>Run abc123</kbd></a>
+> <a href="https://buddy.works/api/webhooks/def456"><kbd>Run def456</kbd></a>
 
 ---
 
