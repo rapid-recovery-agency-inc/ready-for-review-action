@@ -32670,7 +32670,7 @@ function escapeHtml(str) {
  */
 function buildComment(pipelines, today = getTodayString()) {
     const buttons = pipelines
-        .map(({ label, url }) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><kbd>Run ${escapeHtml(label)}</kbd></a>`)
+        .map(({ label, url }) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><kbd>${escapeHtml(label)}</kbd></a>`)
         .join('\n\n');
     return [
         exports.COMMENT_MARKER,

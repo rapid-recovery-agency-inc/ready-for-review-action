@@ -82,7 +82,7 @@ function escapeHtml(str: string): string {
 export function buildComment(pipelines: Pipeline[], today = getTodayString()): string {
   const buttons = pipelines
     .map(({ label, url }) =>
-      `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><kbd>Run ${escapeHtml(label)}</kbd></a>`
+      `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><kbd>${escapeHtml(label)}</kbd></a>`
     )
     .join('\n\n');
 
